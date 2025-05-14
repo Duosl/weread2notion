@@ -28,13 +28,14 @@ from utils import (
     get_url,
 )
 load_dotenv()
-WEREAD_URL = "https://weread.qq.com/"
-WEREAD_NOTEBOOKS_URL = "https://i.weread.qq.com/user/notebooks"
-WEREAD_BOOKMARKLIST_URL = "https://i.weread.qq.com/book/bookmarklist"
-WEREAD_CHAPTER_INFO = "https://i.weread.qq.com/book/chapterInfos"
-WEREAD_READ_INFO_URL = "https://i.weread.qq.com/book/readinfo"
-WEREAD_REVIEW_LIST_URL = "https://i.weread.qq.com/review/list"
-WEREAD_BOOK_INFO = "https://i.weread.qq.com/book/info"
+URL_WEREAD = "https://weread.qq.com/"
+URL_WEREAD_NOTEBOOKS = "https://weread.qq.com/api/user/notebook"
+URL_WEREAD_BOOK_INFO = "https://weread.qq.com/api/book/info"
+URL_WEREAD_BOOKMARKLIST = "https://weread.qq.com/web/book/bookmarklist"
+URL_WEREAD_CHAPTER_INFO = "https://weread.qq.com/web/book/chapterInfos"
+URL_WEREAD_REVIEW_LIST = "https://weread.qq.com/web/review/list"
+URL_WEREAD_READ_INFO = "https://weread.qq.com/web/book/getProgress"
+URL_WEREAD_SHELF_SYNC = "https://weread.qq.com/web/shelf/sync"
 
 
 def parse_cookie_string(cookie_string):
@@ -51,7 +52,7 @@ def parse_cookie_string(cookie_string):
 def get_bookmark_list(bookId):
     """获取我的划线"""
     params = dict(bookId=bookId)
-    r = session.get(WEREAD_BOOKMARKLIST_URL, params=params)
+    r = session.get(URL_WEREAD_BOOKMARKLIST, params=params)
     if r.ok:
         updated = r.json().get("updated")
         updated = sorted(
@@ -64,7 +65,7 @@ def get_bookmark_list(bookId):
 
 def get_read_info(bookId):
     params = dict(bookId=bookId, readingDetail=1, readingBookIndex=1, finishedDate=1)
-    r = session.get(WEREAD_READ_INFO_URL, params=params)
+    r = session.get(URL_WEREAD_READ_INFO, params=params)
     if r.ok:
         return r.json()
     return None
@@ -73,7 +74,7 @@ def get_read_info(bookId):
 def get_bookinfo(bookId):
     """获取书的详情"""
     params = dict(bookId=bookId)
-    r = session.get(WEREAD_BOOK_INFO, params=params)
+    r = session.get(URL_WEREAD_BOOK_INFO, params=params)
     isbn = ""
     if r.ok:
         data = r.json()
@@ -88,7 +89,7 @@ def get_bookinfo(bookId):
 def get_review_list(bookId):
     """获取笔记"""
     params = dict(bookId=bookId, listType=11, mine=1, syncKey=0)
-    r = session.get(WEREAD_REVIEW_LIST_URL, params=params)
+    r = session.get(URL_WEREAD_REVIEW_LIST, params=params)
     reviews = r.json().get("reviews")
     summary = list(filter(lambda x: x.get("review").get("type") == 4, reviews))
     reviews = list(filter(lambda x: x.get("review").get("type") == 1, reviews))
@@ -113,7 +114,7 @@ def check(bookId):
 def get_chapter_info(bookId):
     """获取章节信息"""
     body = {"bookIds": [bookId], "synckeys": [0], "teenmode": 0}
-    r = session.post(WEREAD_CHAPTER_INFO, json=body)
+    r = session.post(URL_WEREAD_CHAPTER_INFO, json=body)
     if (
         r.ok
         and "data" in r.json()
@@ -194,7 +195,7 @@ def add_grandchild(grandchild, results):
 
 def get_notebooklist():
     """获取笔记本列表"""
-    r = session.get(WEREAD_NOTEBOOKS_URL)
+    r = session.get(URL_WEREAD_NOTEBOOKS)
     if r.ok:
         data = r.json()
         books = data.get("books")
@@ -412,7 +413,7 @@ if __name__ == "__main__":
     session = requests.Session()
     session.cookies = parse_cookie_string(weread_cookie)
     client = Client(auth=notion_token, log_level=logging.ERROR)
-    session.get(WEREAD_URL)
+    session.get(URL_WEREAD)
     latest_sort = get_sort()
     books = get_notebooklist()
     if books != None:
