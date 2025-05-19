@@ -54,7 +54,7 @@ def get_bookmark_list(bookId):
     params = dict(bookId=bookId)
     r = session.get(URL_WEREAD_BOOKMARKLIST, params=params)
     if r.ok:
-        updated = r.json().get("updated")
+        updated = r.json().get("updated", [])
         updated = sorted(
             updated,
             key=lambda x: (x.get("chapterUid", 1), int(x.get("range").split("-")[0])),
